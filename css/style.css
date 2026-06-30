@@ -51,12 +51,13 @@ body {
 
 /* ── Header ── */
 header {
-  height: var(--header-height);
+  height: calc(var(--header-height) + env(safe-area-inset-top));
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   display: flex;
-  align-items: center;
-  padding: 0 20px;
+  align-items: flex-end;
+  padding: 0 20px env(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -121,16 +122,17 @@ main {
 
 /* ── Bottom nav ── */
 nav {
-  height: var(--nav-height);
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-around;
   position: sticky;
   bottom: 0;
   z-index: 10;
   padding-bottom: env(safe-area-inset-bottom);
+  padding-top: 8px;
 }
 
 .nav-btn {
