@@ -614,7 +614,7 @@ nav {
 }
 
 /* Start sheet */
-.home-start-body { padding: 8px 20px 28px; }
+.home-start-body { padding: 8px 20px calc(80px + env(safe-area-inset-bottom)); }
 .home-start-meta {
   font-size: 14px;
   color: var(--text-secondary);
