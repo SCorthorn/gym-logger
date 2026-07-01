@@ -616,9 +616,13 @@ nav {
 /* Start sheet */
 .home-start-body { padding: 8px 20px calc(80px + env(safe-area-inset-bottom)); }
 .home-start-meta {
+  margin-bottom: 20px;
+}
+
+.home-start-ex {
   font-size: 14px;
   color: var(--text-secondary);
-  margin-bottom: 20px;
+  padding: 3px 0;
 }
 .home-start-btn {
   width: 100%;

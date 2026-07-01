@@ -220,10 +220,10 @@ function closeSessionDetail() {
 
 function openStartSheet(routine) {
   pending = routine;
-  const count = (routine.exercises || []).length;
+  const exercises = routine.exercises || [];
   document.getElementById('home-start-title').textContent = `Start "${routine.name}"?`;
-  document.getElementById('home-start-meta').textContent =
-    `${count} exercise${count !== 1 ? 's' : ''}`;
+  document.getElementById('home-start-meta').innerHTML =
+    exercises.map(ex => `<div class="home-start-ex">– ${ex.exerciseName}</div>`).join('');
   document.getElementById('ex-overlay').classList.add('active');
   document.getElementById('home-start-sheet').classList.add('active');
 }
