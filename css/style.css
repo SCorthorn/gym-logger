@@ -75,7 +75,7 @@ main {
   flex: 1;
   overflow-y: auto;
   padding: 20px 16px;
-  padding-bottom: calc(var(--nav-height) + 16px);
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
 }
 
 /* ── Views ── */
@@ -128,9 +128,11 @@ nav {
   display: flex;
   align-items: flex-start;
   justify-content: space-around;
-  position: sticky;
+  position: fixed;
   bottom: 0;
-  z-index: 10;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: 8px;
 }
