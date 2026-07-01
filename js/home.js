@@ -34,8 +34,18 @@ async function fetchSessions() {
   }
 }
 
+function sanitizeForFirestore(obj) {
+  return JSON.parse(JSON.stringify(obj, (key, value) => {
+    if (value === undefined) return null;
+    if (typeof value === 'number' && isNaN(value)) return 0;
+    return value;
+  }));
+}
+
 async function persistSession(data) {
-  const ref = await addDoc(SESSIONS_COL, data);
+  const clean = sanitizeForFirestore(data);
+  console.log('[Session] Writing to Firestore:', JSON.stringify(clean, null, 2));
+  const ref = await addDoc(SESSIONS_COL, clean);
   return ref.id;
 }
 
