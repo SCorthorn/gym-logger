@@ -1,6 +1,6 @@
 import { db } from './firebase.js';
 import {
-  collection, getDocs, addDoc, query, orderBy, limit, Timestamp
+  collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, limit, Timestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const ROUTINES_COL = collection(db, 'seba', 'data', 'routines');
@@ -105,6 +105,44 @@ function renderHome() {
     card.addEventListener('click', () => {
       const r = routines.find(x => x.id === card.dataset.id);
       if (r) openStartSheet(r);
+    });
+  });
+}
+
+function renderSessions() {
+  const wrap = document.getElementById('home-sessions-wrap');
+  if (!sessions.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  document.getElementById('home-sessions-list').innerHTML = sessions.slice(0, 20).map(s => {
+    const date = s.startedAt
+      ? new Date(s.startedAt.seconds * 1000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+      : '—';
+    const dur = s.durationSeconds ? formatTime(s.durationSeconds) : '—';
+    const sets = (s.exercises || []).reduce((n, ex) => n + (ex.sets?.filter(x => x.completed)?.length || 0), 0);
+    return `
+      <div class="sess-hist-card" data-id="${s.id}">
+        <div class="sess-hist-body">
+          <div class="sess-hist-name">${s.routineName}</div>
+          <div class="sess-hist-meta">${date} · ${dur} · ${sets} sets</div>
+        </div>
+        <button class="sess-hist-del" data-id="${s.id}" aria-label="Delete session">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+          </svg>
+        </button>
+      </div>`;
+  }).join('');
+
+  document.querySelectorAll('.sess-hist-del').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      if (!confirm('Delete this session?')) return;
+      const id = btn.dataset.id;
+      if (id) await deleteDoc(doc(db, 'seba', 'data', 'sessions', id));
+      sessions = sessions.filter(s => s.id !== id);
+      renderHome();
+      renderSessions();
     });
   });
 }
@@ -354,6 +392,7 @@ async function saveSession() {
     closeFinishSheet();
     closeSessionScreen();
     renderHome();
+    renderSessions();
   } catch (err) {
     console.error(err);
     alert('Failed to save. Try again.');
@@ -368,6 +407,7 @@ async function saveSession() {
 export async function initHome() {
   [routines, sessions] = await Promise.all([fetchRoutines(), fetchSessions()]);
   renderHome();
+  renderSessions();
 
   document.getElementById('home-start-cancel').addEventListener('click', closeStartSheet);
   document.getElementById('home-start-confirm').addEventListener('click', beginSession);
