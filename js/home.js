@@ -12,6 +12,36 @@ let sessions  = [];          // recent sessions, desc by startedAt
 let active    = null;        // active session object
 let pending   = null;        // routine awaiting start confirmation
 let timerID   = null;
+let saveTimer = null;
+
+// ── localStorage draft ────────────────────────────────────
+
+const DRAFT_KEY = 'seba_gym_active_session';
+
+function saveToLocal() {
+  if (!active) return;
+  try {
+    const payload = {
+      routineId:   active.routineId,
+      routineName: active.routineName,
+      startedAt:   { seconds: active.startedAt.seconds, nanoseconds: active.startedAt.nanoseconds },
+      exercises:   active.exercises,
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+    console.log('[Recovery] Draft saved — key:', DRAFT_KEY, '| routine:', payload.routineName);
+  } catch (e) {
+    console.warn('[Recovery] Could not write to localStorage:', e);
+  }
+}
+
+function clearLocal() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+function debouncedSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToLocal, 500);
+}
 
 // ── Firestore ─────────────────────────────────────────────
 
@@ -408,6 +438,7 @@ function renderSets() {
   }).join('');
 
   wireSessEvents(container);
+  saveToLocal();
 }
 
 function wireSessEvents(container) {
@@ -416,6 +447,7 @@ function wireSessEvents(container) {
     inp.addEventListener('change', () => {
       active.exercises[+inp.dataset.ei].sets[+inp.dataset.si][inp.dataset.field] =
         parseFloat(inp.value) || 0;
+      debouncedSave();
     });
   });
 
@@ -533,6 +565,7 @@ async function saveSession() {
     const newId = await persistSession(data);
     console.log('[Session] Saved to Firestore, id:', newId);
     sessions.unshift({ id: newId, ...data });
+    clearLocal();
     closeFinishSheet();
     closeSessionScreen();
     renderHome();
@@ -547,9 +580,55 @@ async function saveSession() {
   }
 }
 
+// ── Session recovery ──────────────────────────────────────
+
+function checkRecovery() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  console.log('[Recovery] checkRecovery — draft found:', !!raw);
+  if (!raw) return;
+  let data;
+  try { data = JSON.parse(raw); } catch { clearLocal(); return; }
+  if (!data?.routineName || !data?.startedAt?.seconds) { clearLocal(); return; }
+
+  const d = new Date(data.startedAt.seconds * 1000);
+  const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    + ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+  const overlay = document.createElement('div');
+  overlay.className = 'recovery-overlay';
+  overlay.innerHTML = `
+    <div class="recovery-modal">
+      <div class="recovery-title">Unfinished Session</div>
+      <div class="recovery-body">
+        You have an unfinished <strong>${data.routineName}</strong> session from ${label}. Continue?
+      </div>
+      <button id="recovery-continue" class="recovery-btn recovery-btn--primary">Continue</button>
+      <button id="recovery-discard" class="recovery-btn recovery-btn--ghost">Discard</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#recovery-continue').addEventListener('click', () => {
+    overlay.remove();
+    active = {
+      routineId:   data.routineId,
+      routineName: data.routineName,
+      startedAt:   new Timestamp(data.startedAt.seconds, data.startedAt.nanoseconds ?? 0),
+      exercises:   data.exercises,
+    };
+    openSessionScreen();
+  });
+
+  overlay.querySelector('#recovery-discard').addEventListener('click', () => {
+    overlay.remove();
+    clearLocal();
+  });
+}
+
 // ── Init ──────────────────────────────────────────────────
 
 export async function initHome() {
+  checkRecovery();
+
   [routines, sessions] = await Promise.all([fetchRoutines(), fetchSessions()]);
   renderHome();
   renderSessions();

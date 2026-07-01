@@ -1570,6 +1570,70 @@ nav {
   overflow: hidden;
 }
 
+/* ── Session recovery modal ── */
+.recovery-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.recovery-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recovery-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.recovery-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.recovery-body strong {
+  color: var(--text);
+}
+
+.recovery-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.recovery-btn:active { opacity: 0.75; }
+
+.recovery-btn--primary {
+  background: var(--success);
+  color: #fff;
+}
+
+.recovery-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
 /* ── Utility ── */
 @media (min-width: 430px) {
   #app {
