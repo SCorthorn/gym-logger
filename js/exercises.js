@@ -66,7 +66,7 @@ function filtered() {
   return allExercises
     .filter(ex => {
       const zoneMatch = activeFilter === 'All' || ex.zone === activeFilter;
-      const nameMatch = ex.name.toLowerCase().includes(q);
+      const nameMatch = ex.name.toLowerCase().includes(q) || ex.muscleGroup.toLowerCase().includes(q);
       return zoneMatch && nameMatch;
     })
     .sort((a, b) => a.name.localeCompare(b.name));
