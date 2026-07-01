@@ -210,9 +210,17 @@ function updateFab(viewId) {
 // ── Init ───────────────────────────────────────────────────
 
 export async function initExercises() {
-  await seedIfEmpty();
-  allExercises = await fetchAll();
-  renderList();
+  const list = document.getElementById('ex-list');
+  try {
+    list.innerHTML = '<div class="ex-empty"><p style="color:var(--text-secondary);font-size:14px">Loading…</p></div>';
+    await seedIfEmpty();
+    allExercises = await fetchAll();
+    renderList();
+  } catch (err) {
+    console.error('Exercises init error:', err);
+    list.innerHTML = `<div class="ex-empty"><p style="color:#ef4444">Failed to load exercises</p><span style="font-size:12px;color:var(--text-secondary)">${err.message}</span></div>`;
+    return { onNavigate: () => {} };
+  }
 
   document.getElementById('ex-search').addEventListener('input', e => {
     searchQuery = e.target.value;
