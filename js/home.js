@@ -35,7 +35,8 @@ async function fetchSessions() {
 }
 
 async function persistSession(data) {
-  await addDoc(SESSIONS_COL, data);
+  const ref = await addDoc(SESSIONS_COL, data);
+  return ref.id;
 }
 
 // ── Helpers ───────────────────────────────────────────────
@@ -139,7 +140,9 @@ function renderSessions() {
       e.stopPropagation();
       if (!confirm('Delete this session?')) return;
       const id = btn.dataset.id;
-      if (id) await deleteDoc(doc(db, 'seba', 'data', 'sessions', id));
+      console.log('[Session] Deleting session id:', id);
+      await deleteDoc(doc(db, 'seba', 'data', 'sessions', id));
+      console.log('[Session] Deleted from Firestore');
       sessions = sessions.filter(s => s.id !== id);
       renderHome();
       renderSessions();
@@ -391,9 +394,9 @@ async function saveSession() {
         })),
       })),
     };
-    await persistSession(data);
-    console.log('[Session] Saved to Firestore');
-    sessions.unshift(data);
+    const newId = await persistSession(data);
+    console.log('[Session] Saved to Firestore, id:', newId);
+    sessions.unshift({ id: newId, ...data });
     closeFinishSheet();
     closeSessionScreen();
     renderHome();
