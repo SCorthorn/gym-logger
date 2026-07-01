@@ -1,6 +1,6 @@
 import { db } from './firebase.js';
 import {
-  collection, getDocs, addDoc, query, orderBy, limit, Timestamp
+  collection, getDocs, addDoc, onSnapshot, query, orderBy, limit, Timestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const SESSIONS_COL = collection(db, 'seba', 'data', 'sessions');
@@ -191,21 +191,6 @@ let allSessions  = [];
 let activeKey    = null;   // currently expanded exercise (normalized name key)
 let activeMetric = 'volume';
 let chart        = null;
-
-// ── Data helpers ──────────────────────────────────────────
-
-async function fetchSessions() {
-  try {
-    const q = query(SESSIONS_COL, orderBy('startedAt', 'desc'), limit(500));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch {
-    const snap = await getDocs(SESSIONS_COL);
-    return snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (b.startedAt?.seconds ?? 0) - (a.startedAt?.seconds ?? 0));
-  }
-}
 
 function tsToDate(ts) {
   if (!ts) return new Date(0);
@@ -497,8 +482,7 @@ async function importHistory() {
       });
     }
     document.getElementById('prog-import-wrap').style.display = 'none';
-    allSessions = await fetchSessions();
-    renderSearchResults(document.getElementById('prog-search').value.trim());
+    // allSessions will be updated automatically by the onSnapshot listener
   } catch (err) {
     console.error('[Progress] Import failed', err);
     btn.disabled    = false;
@@ -510,8 +494,6 @@ async function importHistory() {
 // ── Init ──────────────────────────────────────────────────
 
 export async function initProgress() {
-  allSessions = await fetchSessions();
-
   document.getElementById('prog-search').addEventListener('input', e => {
     if (chart) { chart.destroy(); chart = null; }
     activeKey = null;
@@ -521,5 +503,17 @@ export async function initProgress() {
   document.getElementById('prog-import-btn').addEventListener('click', importHistory);
 
   await checkImportNeeded();
-  renderSearchResults('');
+
+  // Real-time listener: re-render list and refresh open chart on every change
+  const q = query(SESSIONS_COL, orderBy('startedAt', 'desc'), limit(500));
+  onSnapshot(q, snap => {
+    allSessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const searchVal = document.getElementById('prog-search').value.trim();
+    renderSearchResults(searchVal);
+    // Re-render chart for the currently open exercise, if any
+    if (activeKey) {
+      const row = getRow(activeKey);
+      if (row) renderChartInto(row);
+    }
+  }, err => console.error('[Progress] onSnapshot error:', err));
 }
