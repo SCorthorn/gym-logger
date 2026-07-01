@@ -53,11 +53,25 @@
 
       <section id="exercises" class="view">
         <h1 class="view-title">Exercises</h1>
-        <div class="placeholder-card">
-          <span class="placeholder-icon">💪</span>
-          <h3>Exercises</h3>
-          <p>Coming soon</p>
+
+        <!-- Search -->
+        <div class="ex-search-wrap">
+          <svg class="ex-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input id="ex-search" class="ex-search" type="search" placeholder="Search exercises…" autocomplete="off" />
         </div>
+
+        <!-- Filter chips -->
+        <div class="ex-chips">
+          <button class="ex-chip active" data-filter="All">All</button>
+          <button class="ex-chip" data-filter="Core">Core</button>
+          <button class="ex-chip" data-filter="Upper">Upper</button>
+          <button class="ex-chip" data-filter="Lower">Lower</button>
+        </div>
+
+        <!-- Exercise list -->
+        <div id="ex-list" class="ex-list"></div>
       </section>
 
     </main>
@@ -96,7 +110,90 @@
       </button>
     </nav>
 
+    <!-- Overlay (shared by sheet + modal) -->
+    <div id="ex-overlay" class="ex-overlay"></div>
+
+    <!-- Exercise detail bottom sheet -->
+    <div id="ex-detail-sheet" class="ex-sheet" role="dialog" aria-modal="true">
+      <div class="ex-sheet-header">
+        <h2 id="ex-detail-name" class="ex-sheet-title"></h2>
+        <button id="ex-detail-close" class="ex-sheet-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="ex-sheet-body">
+        <div class="ex-detail-row"><span class="ex-detail-label">Zone</span><span id="ex-detail-zone" class="ex-detail-value"></span></div>
+        <div class="ex-detail-row"><span class="ex-detail-label">Muscles</span><span id="ex-detail-muscle" class="ex-detail-value"></span></div>
+        <div class="ex-detail-row"><span class="ex-detail-label">Equipment</span><span id="ex-detail-equipment" class="ex-detail-value"></span></div>
+        <div class="ex-detail-row"><span class="ex-detail-label">Notes</span><span id="ex-detail-notes" class="ex-detail-value ex-detail-notes"></span></div>
+      </div>
+      <button id="ex-detail-delete" class="ex-delete-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+        </svg>
+        Delete Exercise
+      </button>
+    </div>
+
+    <!-- New exercise modal -->
+    <div id="ex-new-modal" class="ex-sheet" role="dialog" aria-modal="true">
+      <div class="ex-sheet-header">
+        <h2 class="ex-sheet-title">New Exercise</h2>
+        <button id="ex-new-close" class="ex-sheet-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form id="ex-new-form" class="ex-form">
+        <label class="ex-form-label">
+          Name <span class="ex-required">*</span>
+          <input name="exName" class="ex-input" type="text" placeholder="e.g. Bulgarian Split Squat" required autocomplete="off" />
+        </label>
+        <label class="ex-form-label">
+          Zone <span class="ex-required">*</span>
+          <select name="exZone" class="ex-input ex-select" required>
+            <option value="">Select zone…</option>
+            <option value="Core">Core</option>
+            <option value="Upper">Upper</option>
+            <option value="Lower">Lower</option>
+          </select>
+        </label>
+        <label class="ex-form-label">
+          Muscle Group <span class="ex-required">*</span>
+          <input name="exMuscle" class="ex-input" type="text" placeholder="e.g. Glutes, Hamstrings" required autocomplete="off" />
+        </label>
+        <label class="ex-form-label">
+          Equipment <span class="ex-required">*</span>
+          <select name="exEquipment" class="ex-input ex-select" required>
+            <option value="">Select equipment…</option>
+            <option>Barbell</option>
+            <option>Dumbbell</option>
+            <option>Machine</option>
+            <option>Kettlebell</option>
+            <option>Cable</option>
+            <option>Bodyweight</option>
+            <option>Band</option>
+          </select>
+        </label>
+        <label class="ex-form-label">
+          Notes
+          <textarea name="exNotes" class="ex-input ex-textarea" placeholder="Optional notes…" rows="3"></textarea>
+        </label>
+        <button type="submit" class="ex-save-btn">Save Exercise</button>
+      </form>
+    </div>
+
   </div>
+
+  <!-- FAB -->
+  <button id="ex-fab" class="ex-fab" aria-label="New exercise">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+  </button>
 
   <script type="module" src="js/app.js"></script>
   <script>

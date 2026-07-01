@@ -1,10 +1,15 @@
+import { initExercises } from './exercises.js';
+
 const views = document.querySelectorAll('.view');
 const navBtns = document.querySelectorAll('.nav-btn');
+
+let exercisesCallbacks = null;
 
 function navigate(targetId) {
   views.forEach(v => v.classList.toggle('active', v.id === targetId));
   navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === targetId));
   history.replaceState(null, '', `#${targetId}`);
+  exercisesCallbacks?.onNavigate(targetId);
 }
 
 navBtns.forEach(btn => {
@@ -13,3 +18,8 @@ navBtns.forEach(btn => {
 
 const initial = location.hash.slice(1) || 'home';
 navigate(document.getElementById(initial) ? initial : 'home');
+
+initExercises().then(callbacks => {
+  exercisesCallbacks = callbacks;
+  exercisesCallbacks.onNavigate(document.querySelector('.view.active')?.id ?? 'home');
+}).catch(console.error);
