@@ -1,7 +1,7 @@
 import { db } from './firebase.js';
 import { store } from './store.js';
 import {
-  collection, getDocs, addDoc, setDoc, deleteDoc, doc, Timestamp
+  collection, getDocs, addDoc, setDoc, deleteDoc, doc, Timestamp, onSnapshot
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const ROUTINES_COL = collection(db, 'seba', 'data', 'routines');
@@ -39,17 +39,19 @@ const DEFAULT_ROUTINES = [
 ];
 
 async function seedIfEmpty() {
+  console.log('[Routines] Checking seed — path: seba/data/routines');
   const snap = await getDocs(ROUTINES_COL);
-  if (!snap.empty) return;
+  console.log('[Routines] Collection size:', snap.size);
+  if (!snap.empty) {
+    console.log('[Routines] Already has data, skipping seed');
+    return;
+  }
+  console.log('[Routines] Collection empty — seeding default routines...');
   const now = Timestamp.now();
   await Promise.all(DEFAULT_ROUTINES.map(r =>
     addDoc(ROUTINES_COL, { ...r, createdAt: now, updatedAt: now })
   ));
-}
-
-async function fetchRoutines() {
-  const snap = await getDocs(ROUTINES_COL);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  console.log('[Routines] Seed complete');
 }
 
 async function getExerciseLibrary() {
@@ -486,9 +488,19 @@ function renderPickerList() {
 // ── Init ──────────────────────────────────────────────────
 
 export async function initRoutines() {
-  await seedIfEmpty().catch(err => console.warn('[Routines] Seed skipped:', err));
-  routines = await fetchRoutines();
-  renderList();
+  await seedIfEmpty().catch(err => console.warn('[Routines] Seed error:', err));
+
+  // Real-time listener: fires immediately with current docs, and again after any write
+  // This fixes the race where seedIfEmpty writes after a one-shot getDocs already returned
+  onSnapshot(
+    ROUTINES_COL,
+    snap => {
+      console.log('[Routines] onSnapshot —', snap.size, 'docs from seba/data/routines');
+      routines = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderList();
+    },
+    err => console.error('[Routines] onSnapshot error:', err)
+  );
 
   // New routine
   document.getElementById('rt-new-btn').addEventListener('click', openNameDialog);
