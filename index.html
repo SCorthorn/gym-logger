@@ -25,12 +25,8 @@
     <main>
 
       <section id="home" class="view">
-        <h1 class="view-title">Home</h1>
-        <div class="placeholder-card">
-          <span class="placeholder-icon">🏋️</span>
-          <h3>Start Routine</h3>
-          <p>Coming soon</p>
-        </div>
+        <h1 class="view-title">Start Workout</h1>
+        <div id="home-routines-list"></div>
       </section>
 
       <section id="routines" class="view">
@@ -135,6 +131,53 @@
         <span>Exercises</span>
       </button>
     </nav>
+
+    <!-- Home: start confirmation sheet -->
+    <div id="home-start-sheet" class="ex-sheet" role="dialog" aria-modal="true">
+      <div class="ex-sheet-header">
+        <h2 id="home-start-title" class="ex-sheet-title"></h2>
+        <button id="home-start-cancel" class="ex-sheet-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="home-start-body">
+        <p id="home-start-meta" class="home-start-meta"></p>
+        <button id="home-start-confirm" class="home-start-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="18" height="18">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Start Workout
+        </button>
+      </div>
+    </div>
+
+    <!-- Session: finish summary sheet -->
+    <div id="sess-finish-sheet" class="ex-sheet" role="dialog" aria-modal="true">
+      <div class="ex-sheet-header">
+        <h2 class="ex-sheet-title">Finish Workout</h2>
+      </div>
+      <div class="fin-body">
+        <div class="fin-name" id="fin-name"></div>
+        <div class="fin-stats">
+          <div class="fin-stat">
+            <span class="fin-stat-label">Duration</span>
+            <span class="fin-stat-value" id="fin-duration">—</span>
+          </div>
+          <div class="fin-stat">
+            <span class="fin-stat-label">Sets done</span>
+            <span class="fin-stat-value" id="fin-sets">—</span>
+          </div>
+          <div class="fin-stat">
+            <span class="fin-stat-label">Total volume</span>
+            <span class="fin-stat-value" id="fin-volume">—</span>
+          </div>
+        </div>
+        <button id="fin-save-btn" class="fin-save-btn">Save Session</button>
+        <button id="fin-cancel-btn" class="fin-cancel-btn">Continue Session</button>
+      </div>
+    </div>
 
     <!-- Routine: exercise picker sheet -->
     <div id="rt-picker-sheet" class="ex-sheet" role="dialog" aria-modal="true">
@@ -254,6 +297,19 @@
   </div>
 
   <button id="ex-fab" class="ex-fab" aria-label="New exercise">+ New Exercise</button>
+
+  <!-- Active session screen (full-screen overlay) -->
+  <div id="session-screen" class="session-screen" style="display:none">
+    <div class="sess-topbar">
+      <div class="sess-meta">
+        <div class="sess-routine-name" id="sess-routine-name"></div>
+        <div class="sess-date" id="sess-date"></div>
+      </div>
+      <div class="sess-timer" id="sess-timer">00:00</div>
+      <button id="sess-finish-btn" class="sess-finish-btn">Finish</button>
+    </div>
+    <div class="sess-exercises" id="sess-exercises"></div>
+  </div>
 
   <script type="module" src="js/app.js"></script>
   <script>
