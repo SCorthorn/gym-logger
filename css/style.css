@@ -775,6 +775,20 @@ nav {
   letter-spacing: 0.02em;
 }
 
+.sess-discard-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .sess-finish-btn {
   background: var(--success);
   color: #fff;

@@ -637,6 +637,12 @@ export async function initHome() {
   document.getElementById('home-start-cancel').addEventListener('click', closeStartSheet);
   document.getElementById('home-start-confirm').addEventListener('click', beginSession);
 
+  document.getElementById('sess-discard-btn').addEventListener('click', () => {
+    if (confirm('Discard this session? All progress will be lost.')) {
+      clearLocal();
+      closeSessionScreen();
+    }
+  });
   document.getElementById('sess-finish-btn').addEventListener('click', openFinishSheet);
   document.getElementById('fin-cancel-btn').addEventListener('click', closeFinishSheet);
   document.getElementById('fin-save-btn').addEventListener('click', saveSession);
