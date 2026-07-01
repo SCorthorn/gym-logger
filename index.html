@@ -34,12 +34,38 @@
       </section>
 
       <section id="routines" class="view">
-        <h1 class="view-title">Routines</h1>
-        <div class="placeholder-card">
-          <span class="placeholder-icon">📋</span>
-          <h3>Routines</h3>
-          <p>Coming soon</p>
+
+        <!-- List subview -->
+        <div id="rt-list-view">
+          <div class="rt-list-header">
+            <h1 class="view-title" style="margin-bottom:0">Routines</h1>
+            <button id="rt-new-btn" class="rt-new-btn">+ New Routine</button>
+          </div>
+          <div id="rt-list"></div>
         </div>
+
+        <!-- Detail subview -->
+        <div id="rt-detail-view" style="display:none">
+          <div class="rt-topbar">
+            <button id="rt-back-btn" class="rt-back-btn" aria-label="Back">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </button>
+            <input id="rt-name-input" class="rt-name-input" type="text" placeholder="Routine name" autocomplete="off" />
+            <button id="rt-save-btn" class="rt-save-btn">Save</button>
+          </div>
+          <div id="rt-exercises"></div>
+          <div class="rt-add-ex-wrap">
+            <button id="rt-add-exercise-btn" class="rt-add-ex-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="18" height="18">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Add Exercise
+            </button>
+          </div>
+        </div>
+
       </section>
 
       <section id="progress" class="view">
@@ -109,6 +135,45 @@
         <span>Exercises</span>
       </button>
     </nav>
+
+    <!-- Routine: exercise picker sheet -->
+    <div id="rt-picker-sheet" class="ex-sheet" role="dialog" aria-modal="true">
+      <div class="ex-sheet-header">
+        <h2 class="ex-sheet-title">Add Exercise</h2>
+        <button id="rt-picker-close" class="ex-sheet-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="rt-picker-body">
+        <div class="ex-search-wrap">
+          <svg class="ex-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input id="rt-picker-search" class="ex-search" type="search" placeholder="Search exercises…" autocomplete="off" />
+        </div>
+        <div class="ex-chips" id="rt-picker-chips">
+          <button class="ex-chip active" data-filter="All">All</button>
+          <button class="ex-chip" data-filter="Core">Core</button>
+          <button class="ex-chip" data-filter="Upper">Upper</button>
+          <button class="ex-chip" data-filter="Lower">Lower</button>
+        </div>
+        <div id="rt-picker-list" class="rt-picker-list"></div>
+      </div>
+    </div>
+
+    <!-- Routine: new routine name dialog -->
+    <div id="rt-name-dialog" class="rt-dialog-overlay" style="display:none">
+      <div class="rt-dialog">
+        <h3 class="rt-dialog-title">New Routine</h3>
+        <input id="rt-dialog-input" class="ex-input" type="text" placeholder="e.g. Push Day" autocomplete="off" />
+        <div class="rt-dialog-actions">
+          <button id="rt-dialog-cancel" class="rt-dialog-btn rt-dialog-cancel">Cancel</button>
+          <button id="rt-dialog-confirm" class="rt-dialog-btn rt-dialog-confirm">Create</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Overlay (shared by sheet + modal) -->
     <div id="ex-overlay" class="ex-overlay"></div>

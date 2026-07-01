@@ -2,6 +2,7 @@ import { db } from './firebase.js';
 import {
   collection, getDocs, addDoc, deleteDoc, doc
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { store } from './store.js';
 
 const EXERCISES_COL = collection(db, 'seba', 'data', 'exercises');
 
@@ -215,6 +216,7 @@ export async function initExercises() {
     list.innerHTML = '<div class="ex-empty"><p style="color:var(--text-secondary);font-size:14px">Loading…</p></div>';
     await seedIfEmpty();
     allExercises = await fetchAll();
+    store.exercises = allExercises;
     renderList();
   } catch (err) {
     console.error('Exercises init error:', err);

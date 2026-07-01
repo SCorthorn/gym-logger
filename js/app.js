@@ -1,8 +1,8 @@
 import { initExercises } from './exercises.js';
+import { initRoutines } from './routines.js';
 
 const views = document.querySelectorAll('.view');
 const navBtns = document.querySelectorAll('.nav-btn');
-
 let exercisesCallbacks = null;
 
 function navigate(targetId) {
@@ -12,14 +12,14 @@ function navigate(targetId) {
   exercisesCallbacks?.onNavigate(targetId);
 }
 
-navBtns.forEach(btn => {
-  btn.addEventListener('click', () => navigate(btn.dataset.view));
-});
+navBtns.forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.view)));
 
 const initial = location.hash.slice(1) || 'home';
 navigate(document.getElementById(initial) ? initial : 'home');
 
-initExercises().then(callbacks => {
-  exercisesCallbacks = callbacks;
+initExercises().then(cb => {
+  exercisesCallbacks = cb;
   exercisesCallbacks.onNavigate(document.querySelector('.view.active')?.id ?? 'home');
 }).catch(console.error);
+
+initRoutines().catch(console.error);
