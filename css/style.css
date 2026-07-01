@@ -342,34 +342,36 @@ nav {
   color: var(--text-secondary);
 }
 
-/* ── Header action button ── */
+/* ── FAB ── */
 
-.header-action-btn {
-  margin-left: auto;
+.ex-fab {
+  position: fixed;
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
+  right: 20px;
   background: var(--accent);
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  width: 34px;
-  height: 34px;
+  border-radius: 24px;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  cursor: pointer;
   display: none;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  gap: 6px;
+  z-index: 20;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, transform 0.15s;
 }
 
-.header-action-btn svg {
-  width: 20px;
-  height: 20px;
-  stroke: #fff;
+.ex-fab:active {
+  opacity: 0.85;
+  transform: scale(0.97);
 }
 
-.header-action-btn:active {
-  opacity: 0.8;
-}
-
-.header-action-btn.visible {
+.ex-fab.visible {
   display: flex;
 }
 
