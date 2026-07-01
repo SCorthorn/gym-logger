@@ -281,34 +281,6 @@
 
   <button id="ex-fab" class="ex-fab" aria-label="New exercise">+ New Exercise</button>
 
-  <!-- Exercise progress detail screen -->
-  <div id="prog-detail" class="session-screen" style="display:none">
-    <div class="sess-topbar">
-      <button id="prog-back" class="rt-back-btn" aria-label="Back">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
-      </button>
-      <div class="sess-meta">
-        <div class="sess-routine-name" id="prog-ex-name"></div>
-      </div>
-    </div>
-    <div class="prog-body">
-      <div class="prog-toggles">
-        <button class="prog-toggle active" data-metric="volume">Volume</button>
-        <button class="prog-toggle" data-metric="maxWeight">Max Weight</button>
-        <button class="prog-toggle" data-metric="e1rm">Est. 1RM</button>
-      </div>
-      <div class="prog-chart-wrap">
-        <canvas id="prog-chart"></canvas>
-        <div id="prog-chart-msg" class="prog-chart-msg" style="display:none">
-          Log at least 2 sessions to see your chart
-        </div>
-      </div>
-      <div id="prog-summary"></div>
-    </div>
-  </div>
-
   <!-- Session detail screen (read-only) -->
   <div id="session-detail" class="session-screen" style="display:none">
     <div class="sess-topbar">

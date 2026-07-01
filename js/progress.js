@@ -187,10 +187,10 @@ const HISTORICAL_SESSIONS = [
 
 // ── State ─────────────────────────────────────────────────
 
-let allSessions = [];
-let currentExerciseId = null;
-let currentMetric = 'volume';
-let chart = null;
+let allSessions  = [];
+let activeKey    = null;   // currently expanded exercise (normalized name key)
+let activeMetric = 'volume';
+let chart        = null;
 
 // ── Data helpers ──────────────────────────────────────────
 
@@ -213,24 +213,28 @@ function tsToDate(ts) {
   return new Date(ts);
 }
 
+// Deduplicate by normalized name so e.g. "Lat Pulldown" logged under
+// different exerciseIds (Firestore ID vs "lat_pulldown") collapses into one.
 function getTrackedExercises() {
-  const map = new Map();
+  const map = new Map(); // normalized name → display name
   for (const s of allSessions) {
     for (const ex of (s.exercises || [])) {
-      if (!map.has(ex.exerciseId)) {
-        map.set(ex.exerciseId, ex.exerciseName);
-      }
+      const key = ex.exerciseName.trim().toLowerCase();
+      if (!map.has(key)) map.set(key, ex.exerciseName.trim());
     }
   }
   return [...map.entries()]
-    .map(([id, name]) => ({ id, name }))
+    .map(([key, name]) => ({ key, name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function computeMetrics(exerciseId) {
+// Match by normalized exercise name so all variants are merged
+function computeMetrics(nameKey) {
   const points = [];
   for (const s of allSessions) {
-    const ex = (s.exercises || []).find(e => e.exerciseId === exerciseId);
+    const ex = (s.exercises || []).find(
+      e => e.exerciseName.trim().toLowerCase() === nameKey
+    );
     if (!ex) continue;
     const completedSets = (ex.sets || []).filter(set => set.completed);
     if (!completedSets.length) continue;
@@ -239,7 +243,7 @@ function computeMetrics(exerciseId) {
     let volume = 0, maxWeight = 0, e1rm = 0;
     for (const set of completedSets) {
       const w = set.weight || 0;
-      const r = set.reps || 0;
+      const r = set.reps   || 0;
       volume += w * r;
       if (w > maxWeight) maxWeight = w;
       const est = w * (1 + r / 30);
@@ -254,11 +258,18 @@ function fmtDate(d) {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
-// ── Render search results ─────────────────────────────────
+function getRow(key) {
+  for (const row of document.querySelectorAll('.prog-ex-row')) {
+    if (row.dataset.key === key) return row;
+  }
+  return null;
+}
+
+// ── Render list ───────────────────────────────────────────
 
 function renderSearchResults(q) {
-  const results = document.getElementById('prog-results');
-  const tracked = getTrackedExercises();
+  const results  = document.getElementById('prog-results');
+  const tracked  = getTrackedExercises();
   const filtered = q
     ? tracked.filter(e => e.name.toLowerCase().includes(q.toLowerCase()))
     : tracked;
@@ -267,47 +278,99 @@ function renderSearchResults(q) {
     results.innerHTML = `
       <div class="ex-empty">
         <p>${q ? 'No matching exercises' : 'No sessions logged yet'}</p>
-        <span>${q ? '' : 'Import history or log a workout to see progress'}</span>
+        <span>${q ? '' : 'Import history or log a workout first'}</span>
       </div>`;
+    activeKey = null;
+    if (chart) { chart.destroy(); chart = null; }
     return;
   }
 
   results.innerHTML = filtered.map(e => `
-    <div class="prog-ex-item" data-id="${e.id}">
-      <span class="prog-ex-name">${e.name}</span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" width="16" height="16" class="prog-ex-arrow">
-        <path d="M9 18l6-6-6-6"/>
-      </svg>
+    <div class="prog-ex-row" data-key="${e.key}">
+      <div class="prog-ex-item">
+        <span class="prog-ex-name">${e.name}</span>
+        <svg class="prog-ex-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </div>
+      <div class="prog-expand" style="display:none">
+        <div class="prog-toggles">
+          <button class="prog-toggle active" data-metric="volume">Volume</button>
+          <button class="prog-toggle" data-metric="maxWeight">Max Weight</button>
+          <button class="prog-toggle" data-metric="e1rm">Est. 1RM</button>
+        </div>
+        <div class="prog-chart-wrap">
+          <canvas class="prog-canvas"></canvas>
+          <div class="prog-chart-msg" style="display:none">
+            Log at least 2 sessions to see your chart
+          </div>
+        </div>
+        <div class="prog-summary"></div>
+      </div>
     </div>`).join('');
 
   results.querySelectorAll('.prog-ex-item').forEach(item => {
-    item.addEventListener('click', () => openExerciseDetail(item.dataset.id));
+    item.addEventListener('click', () => {
+      const row = item.closest('.prog-ex-row');
+      toggleExercise(row.dataset.key);
+    });
+  });
+
+  results.querySelectorAll('.prog-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('.prog-ex-row');
+      if (row.dataset.key !== activeKey) return;
+      row.querySelectorAll('.prog-toggle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeMetric = btn.dataset.metric;
+      renderChartInto(row);
+    });
   });
 }
 
-// ── Exercise detail view ──────────────────────────────────
+// ── Accordion toggle ──────────────────────────────────────
 
-function openExerciseDetail(exerciseId) {
-  currentExerciseId = exerciseId;
-  currentMetric = 'volume';
+function toggleExercise(key) {
+  const prevKey = activeKey;
 
-  const name = getTrackedExercises().find(e => e.id === exerciseId)?.name || exerciseId;
-  document.getElementById('prog-ex-name').textContent = name;
+  // Close previously open row
+  if (prevKey) {
+    const prevRow = getRow(prevKey);
+    if (prevRow) {
+      prevRow.querySelector('.prog-expand').style.display  = 'none';
+      prevRow.querySelector('.prog-ex-chevron').classList.remove('open');
+    }
+    if (chart) { chart.destroy(); chart = null; }
+    activeKey = null;
+  }
 
-  document.querySelectorAll('.prog-toggle').forEach(btn => {
+  // Same key: was already open, now closed — done
+  if (key === prevKey) return;
+
+  // Open new row
+  activeKey    = key;
+  activeMetric = 'volume';
+
+  const row = getRow(key);
+  if (!row) return;
+
+  row.querySelectorAll('.prog-toggle').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.metric === 'volume');
   });
 
-  document.getElementById('prog-detail').style.display = 'flex';
-  renderChart();
+  row.querySelector('.prog-expand').style.display = 'block';
+  row.querySelector('.prog-ex-chevron').classList.add('open');
+
+  renderChartInto(row);
 }
 
-function renderChart() {
-  const points = computeMetrics(currentExerciseId);
-  const canvas  = document.getElementById('prog-chart');
-  const msg     = document.getElementById('prog-chart-msg');
-  const summary = document.getElementById('prog-summary');
+function renderChartInto(row) {
+  const key     = row.dataset.key;
+  const points  = computeMetrics(key);
+  const canvas  = row.querySelector('.prog-canvas');
+  const msg     = row.querySelector('.prog-chart-msg');
+  const summary = row.querySelector('.prog-summary');
 
   if (points.length < 2) {
     canvas.style.display = 'none';
@@ -321,10 +384,10 @@ function renderChart() {
   msg.style.display    = 'none';
 
   const labels = points.map(p => fmtDate(p.date));
-  const values = points.map(p => p[currentMetric]);
+  const values = points.map(p => p[activeMetric]);
 
-  const ctx = canvas.getContext('2d');
-  const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+  const ctx      = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
   gradient.addColorStop(0, 'rgba(59,130,246,0.35)');
   gradient.addColorStop(1, 'rgba(59,130,246,0)');
 
@@ -368,7 +431,7 @@ function renderChart() {
       scales: {
         x: {
           ticks: { color: '#9ca3af', font: { size: 11 }, maxTicksLimit: 6 },
-          grid: { color: '#2f2f2f' },
+          grid:  { color: '#2f2f2f' },
           border: { color: '#3a3a3a' }
         },
         y: {
@@ -377,14 +440,13 @@ function renderChart() {
             font: { size: 11 },
             callback: v => `${v} kg`
           },
-          grid: { color: '#2f2f2f' },
+          grid:  { color: '#2f2f2f' },
           border: { color: '#3a3a3a' }
         }
       }
     }
   });
 
-  // Summary
   const best     = Math.max(...values);
   const lastDate = fmtDate(points[points.length - 1].date);
   summary.innerHTML = `
@@ -451,21 +513,9 @@ export async function initProgress() {
   allSessions = await fetchSessions();
 
   document.getElementById('prog-search').addEventListener('input', e => {
-    renderSearchResults(e.target.value.trim());
-  });
-
-  document.getElementById('prog-back').addEventListener('click', () => {
-    document.getElementById('prog-detail').style.display = 'none';
     if (chart) { chart.destroy(); chart = null; }
-  });
-
-  document.querySelectorAll('.prog-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentMetric = btn.dataset.metric;
-      document.querySelectorAll('.prog-toggle').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderChart();
-    });
+    activeKey = null;
+    renderSearchResults(e.target.value.trim());
   });
 
   document.getElementById('prog-import-btn').addEventListener('click', importHistory);
