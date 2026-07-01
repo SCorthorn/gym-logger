@@ -324,6 +324,7 @@ function wireSessEvents(container) {
 // ── Finish flow ───────────────────────────────────────────
 
 function openFinishSheet() {
+  console.log('[Session] Finish tapped');
   // Snapshot all current input values
   active.exercises.forEach((ex, ei) => {
     ex.sets.forEach((s, si) => {
@@ -356,16 +357,19 @@ function openFinishSheet() {
   active._finishedAt  = now;
   active._durSecs     = durSecs;
 
-  document.getElementById('ex-overlay').classList.add('active');
+  document.getElementById('sess-overlay').classList.add('active');
   document.getElementById('sess-finish-sheet').classList.add('active');
+  console.log('[Session] Finish sheet shown — sets:', totalSets, 'volume:', totalVol);
 }
 
 function closeFinishSheet() {
   document.getElementById('sess-finish-sheet').classList.remove('active');
-  document.getElementById('ex-overlay').classList.remove('active');
+  document.getElementById('sess-overlay').classList.remove('active');
+  console.log('[Session] Finish sheet closed — continuing session');
 }
 
 async function saveSession() {
+  console.log('[Session] Save tapped');
   const btn = document.getElementById('fin-save-btn');
   btn.disabled  = true;
   btn.textContent = 'Saving…';
@@ -388,11 +392,13 @@ async function saveSession() {
       })),
     };
     await persistSession(data);
+    console.log('[Session] Saved to Firestore');
     sessions.unshift(data);
     closeFinishSheet();
     closeSessionScreen();
     renderHome();
     renderSessions();
+    console.log('[Session] Navigated back to Home');
   } catch (err) {
     console.error(err);
     alert('Failed to save. Try again.');

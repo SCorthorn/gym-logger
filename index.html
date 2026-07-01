@@ -157,32 +157,6 @@
       </div>
     </div>
 
-    <!-- Session: finish summary sheet -->
-    <div id="sess-finish-sheet" class="ex-sheet" role="dialog" aria-modal="true">
-      <div class="ex-sheet-header">
-        <h2 class="ex-sheet-title">Finish Workout</h2>
-      </div>
-      <div class="fin-body">
-        <div class="fin-name" id="fin-name"></div>
-        <div class="fin-stats">
-          <div class="fin-stat">
-            <span class="fin-stat-label">Duration</span>
-            <span class="fin-stat-value" id="fin-duration">—</span>
-          </div>
-          <div class="fin-stat">
-            <span class="fin-stat-label">Sets done</span>
-            <span class="fin-stat-value" id="fin-sets">—</span>
-          </div>
-          <div class="fin-stat">
-            <span class="fin-stat-label">Total volume</span>
-            <span class="fin-stat-value" id="fin-volume">—</span>
-          </div>
-        </div>
-        <button id="fin-save-btn" class="fin-save-btn">Save Session</button>
-        <button id="fin-cancel-btn" class="fin-cancel-btn">Continue Session</button>
-      </div>
-    </div>
-
     <!-- Routine: exercise picker sheet -->
     <div id="rt-picker-sheet" class="ex-sheet" role="dialog" aria-modal="true">
       <div class="ex-sheet-header">
@@ -313,6 +287,33 @@
       <button id="sess-finish-btn" class="sess-finish-btn">Finish</button>
     </div>
     <div class="sess-exercises" id="sess-exercises"></div>
+
+    <!-- Finish sheet lives inside session-screen so it sits above z-index 500 -->
+    <div id="sess-overlay" class="sess-overlay"></div>
+    <div id="sess-finish-sheet" class="sess-finish-sheet" role="dialog" aria-modal="true">
+      <div class="ex-sheet-header">
+        <h2 class="ex-sheet-title">Finish Workout</h2>
+      </div>
+      <div class="fin-body">
+        <div class="fin-name" id="fin-name"></div>
+        <div class="fin-stats">
+          <div class="fin-stat">
+            <span class="fin-stat-label">Duration</span>
+            <span class="fin-stat-value" id="fin-duration">—</span>
+          </div>
+          <div class="fin-stat">
+            <span class="fin-stat-label">Sets done</span>
+            <span class="fin-stat-value" id="fin-sets">—</span>
+          </div>
+          <div class="fin-stat">
+            <span class="fin-stat-label">Total volume</span>
+            <span class="fin-stat-value" id="fin-volume">—</span>
+          </div>
+        </div>
+        <button id="fin-save-btn" class="fin-save-btn">Save Session</button>
+        <button id="fin-cancel-btn" class="fin-cancel-btn">Continue Session</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="js/app.js"></script>
