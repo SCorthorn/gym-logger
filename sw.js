@@ -1,4 +1,4 @@
-const CACHE = 'seba-gym-v2';
+const CACHE = 'seba-gym-v3';
 const PRECACHE = [
   '/',
   '/index.html',
