@@ -15,6 +15,38 @@ let pickerSearch = '';
 
 // ── Firestore ─────────────────────────────────────────────
 
+const DEFAULT_ROUTINES = [
+  {
+    name: "A",
+    exercises: [
+      { exerciseId: "squat",               exerciseName: "Squat",               sets: [{ reps: 8, weight: 50 }, { reps: 8, weight: 50 }, { reps: 8, weight: 50 }] },
+      { exerciseId: "seated_row",          exerciseName: "Seated Row",          sets: [{ reps: 8, weight: 60 }, { reps: 8, weight: 60 }, { reps: 8, weight: 60 }] },
+      { exerciseId: "lateral_raise",       exerciseName: "Lateral Raise",       sets: [{ reps: 8, weight: 8 }, { reps: 8, weight: 8 }, { reps: 8, weight: 8 }, { reps: 8, weight: 8 }] },
+      { exerciseId: "standing_calf_raise", exerciseName: "Standing Calf Raise", sets: [{ reps: 10, weight: 50 }, { reps: 10, weight: 50 }, { reps: 10, weight: 50 }] },
+      { exerciseId: "hip_abductor",        exerciseName: "Hip Abductor",        sets: [{ reps: 8, weight: 85 }, { reps: 8, weight: 85 }, { reps: 8, weight: 85 }] }
+    ]
+  },
+  {
+    name: "B",
+    exercises: [
+      { exerciseId: "leg_extension",        exerciseName: "Leg Extension",        sets: [{ reps: 10, weight: 32.5 }, { reps: 10, weight: 32.5 }, { reps: 10, weight: 32.5 }] },
+      { exerciseId: "seated_overhead_press",exerciseName: "Seated Overhead Press",sets: [{ reps: 7, weight: 20 }, { reps: 7, weight: 20 }, { reps: 7, weight: 20 }, { reps: 7, weight: 20 }] },
+      { exerciseId: "deadlift",             exerciseName: "Deadlift",             sets: [{ reps: 5, weight: 80 }, { reps: 5, weight: 80 }] },
+      { exerciseId: "lat_pulldown",         exerciseName: "Lat Pulldown",         sets: [{ reps: 9, weight: 50 }, { reps: 9, weight: 50 }, { reps: 9, weight: 50 }] },
+      { exerciseId: "triceps_pushdown",     exerciseName: "Triceps Pushdown",     sets: [{ reps: 8, weight: 20 }, { reps: 8, weight: 20 }, { reps: 8, weight: 20 }] }
+    ]
+  }
+];
+
+async function seedIfEmpty() {
+  const snap = await getDocs(ROUTINES_COL);
+  if (!snap.empty) return;
+  const now = Timestamp.now();
+  await Promise.all(DEFAULT_ROUTINES.map(r =>
+    addDoc(ROUTINES_COL, { ...r, createdAt: now, updatedAt: now })
+  ));
+}
+
 async function fetchRoutines() {
   const snap = await getDocs(ROUTINES_COL);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -454,6 +486,7 @@ function renderPickerList() {
 // ── Init ──────────────────────────────────────────────────
 
 export async function initRoutines() {
+  await seedIfEmpty();
   routines = await fetchRoutines();
   renderList();
 
