@@ -486,7 +486,7 @@ function renderPickerList() {
 // ── Init ──────────────────────────────────────────────────
 
 export async function initRoutines() {
-  await seedIfEmpty();
+  await seedIfEmpty().catch(err => console.warn('[Routines] Seed skipped:', err));
   routines = await fetchRoutines();
   renderList();
 
