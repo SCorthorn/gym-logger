@@ -459,8 +459,8 @@ async function saveSession() {
     renderSessions();
     console.log('[Session] Navigated back to Home');
   } catch (err) {
-    console.error(err);
-    alert('Failed to save. Try again.');
+    console.error('[Session] Save failed — code:', err?.code, '| message:', err?.message, err);
+    alert(`Failed to save.\nError: ${err?.code || err?.message || 'unknown'}\nCheck console for details.`);
   } finally {
     btn.disabled    = false;
     btn.textContent = 'Save Session';
