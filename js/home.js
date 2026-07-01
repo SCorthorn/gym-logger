@@ -135,6 +135,13 @@ function renderSessions() {
       </div>`;
   }).join('');
 
+  document.querySelectorAll('.sess-hist-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const s = sessions.find(x => x.id === card.dataset.id);
+      if (s) openSessionDetail(s);
+    });
+  });
+
   document.querySelectorAll('.sess-hist-del').forEach(btn => {
     btn.addEventListener('click', async e => {
       e.stopPropagation();
@@ -148,6 +155,55 @@ function renderSessions() {
       renderSessions();
     });
   });
+}
+
+// ── Session detail view ───────────────────────────────────
+
+function openSessionDetail(s) {
+  const date = s.startedAt
+    ? new Date(s.startedAt.seconds * 1000).toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric'
+      })
+    : '—';
+  const dur = s.durationSeconds ? formatTime(s.durationSeconds) : '—';
+  let totalVol = 0;
+  (s.exercises || []).forEach(ex =>
+    (ex.sets || []).forEach(set => {
+      if (set.completed) totalVol += (set.weight || 0) * (set.reps || 0);
+    })
+  );
+
+  document.getElementById('sd-name').textContent   = s.routineName;
+  document.getElementById('sd-date').textContent   = date;
+  document.getElementById('sd-dur').textContent    = dur;
+  document.getElementById('sd-vol').textContent    = `${totalVol.toLocaleString()} kg`;
+
+  document.getElementById('sd-exercises').innerHTML = (s.exercises || []).map((ex, ei) => `
+    <div class="sd-ex-block">
+      <div class="sd-ex-title">
+        ${ex.exerciseName}
+        <span class="sess-ex-equip">(${ex.equipment})</span>
+      </div>
+      <div class="sess-table-wrap">
+        <div class="sess-row sess-header">
+          <span>Set</span><span></span><span>kg</span><span>Reps</span><span></span>
+        </div>
+        ${(ex.sets || []).map((s, si) => `
+          <div class="sess-row sd-set-row${s.completed ? ' done' : ''}">
+            <span class="sess-set-num">${si + 1}</span>
+            <span></span>
+            <span class="sd-val">${s.weight || '—'}</span>
+            <span class="sd-val">${s.reps || '—'}</span>
+            <span>${s.completed ? '✓' : ''}</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('session-detail').style.display = 'flex';
+}
+
+function closeSessionDetail() {
+  document.getElementById('session-detail').style.display = 'none';
 }
 
 // ── Start confirmation sheet ──────────────────────────────
@@ -418,6 +474,7 @@ export async function initHome() {
   renderHome();
   renderSessions();
 
+  document.getElementById('sd-close').addEventListener('click', closeSessionDetail);
   document.getElementById('home-start-cancel').addEventListener('click', closeStartSheet);
   document.getElementById('home-start-confirm').addEventListener('click', beginSession);
 
