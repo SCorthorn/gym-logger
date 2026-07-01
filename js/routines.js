@@ -216,10 +216,10 @@ function renderExercises() {
             <span class="rt-set-num">${si + 1}</span>
             <input class="rt-set-input" type="number" inputmode="decimal" min="0" step="0.5"
               value="${s.weight ?? ''}" placeholder="—"
-              data-ei="${ei}" data-si="${si}" data-field="weight" />
+              data-ei="${ei}" data-si="${si}" data-field="weight" onfocus="this.select()" />
             <input class="rt-set-input" type="number" inputmode="numeric" min="0"
               value="${s.reps ?? ''}" placeholder="—"
-              data-ei="${ei}" data-si="${si}" data-field="reps" />
+              data-ei="${ei}" data-si="${si}" data-field="reps" onfocus="this.select()" />
             <button class="rt-set-del" data-ei="${ei}" data-si="${si}" aria-label="Delete set">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                 <path d="M18 6L6 18M6 6l12 12"/>
