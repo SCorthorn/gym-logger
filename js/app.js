@@ -1,6 +1,7 @@
 import { initExercises } from './exercises.js';
 import { initRoutines } from './routines.js';
 import { initHome } from './home.js';
+import { initProgress } from './progress.js';
 
 const views = document.querySelectorAll('.view');
 const navBtns = document.querySelectorAll('.nav-btn');
@@ -25,3 +26,4 @@ initExercises().then(cb => {
 
 initRoutines().catch(console.error);
 initHome().catch(console.error);
+initProgress().catch(console.error);
