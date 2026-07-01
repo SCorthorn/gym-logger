@@ -274,6 +274,76 @@ function openSessionScreen() {
   });
   renderSets();
   startTimer();
+  initSwipeDelete(document.getElementById('sess-exercises'));
+}
+
+// Snapshot all visible input values into active state before any re-render
+function snapshotInputs() {
+  document.querySelectorAll('.sess-set-row').forEach(row => {
+    const ei = +row.dataset.ei, si = +row.dataset.si;
+    if (!active.exercises[ei]?.sets[si]) return;
+    const w = row.querySelector('[data-field="weight"]');
+    const r = row.querySelector('[data-field="reps"]');
+    if (w) active.exercises[ei].sets[si].weight = parseFloat(w.value) || 0;
+    if (r) active.exercises[ei].sets[si].reps   = parseFloat(r.value) || 0;
+  });
+}
+
+// Swipe-left to delete a set row. Uses event delegation on the container so
+// it covers dynamically added rows (+ Add set) without re-attaching listeners.
+function initSwipeDelete(container) {
+  let startX = 0, startY = 0, dragRow = null, axisLocked = false;
+
+  container.addEventListener('touchstart', e => {
+    const row = e.target.closest('.sess-set-row');
+    if (!row) return;
+    dragRow   = row;
+    startX    = e.touches[0].clientX;
+    startY    = e.touches[0].clientY;
+    axisLocked = false;
+  }, { passive: true });
+
+  container.addEventListener('touchmove', e => {
+    if (!dragRow) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (!axisLocked) {
+      // Cancel if scrolling vertically
+      if (Math.abs(dy) > Math.abs(dx)) { dragRow = null; return; }
+      axisLocked = true;
+    }
+    if (dx < 0) {
+      dragRow.style.transition = 'none';
+      dragRow.style.transform  = `translateX(${Math.max(dx, -90)}px)`;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchend', e => {
+    if (!dragRow) return;
+    const dx  = e.changedTouches[0].clientX - startX;
+    const row = dragRow;
+    dragRow   = null;
+
+    if (dx < -60) {
+      // Commit delete: animate out then splice
+      row.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
+      row.style.transform  = 'translateX(-100%)';
+      row.style.opacity    = '0';
+      setTimeout(() => {
+        const ei = +row.dataset.ei, si = +row.dataset.si;
+        snapshotInputs();
+        if (active.exercises[ei]) {
+          active.exercises[ei].sets.splice(si, 1);
+          renderSets();
+        }
+      }, 180);
+    } else {
+      // Snap back
+      row.style.transition = 'transform 0.2s ease';
+      row.style.transform  = '';
+      setTimeout(() => { row.style.transition = ''; }, 200);
+    }
+  }, { passive: true });
 }
 
 function closeSessionScreen() {
