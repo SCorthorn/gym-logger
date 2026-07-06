@@ -201,16 +201,19 @@ function tsToDate(ts) {
 // Deduplicate by normalized name so e.g. "Lat Pulldown" logged under
 // different exerciseIds (Firestore ID vs "lat_pulldown") collapses into one.
 function getTrackedExercises() {
-  const map = new Map(); // normalized name → display name
+  const names  = new Map(); // normalized key → display name
+  const counts = new Map(); // normalized key → session count
   for (const s of allSessions) {
+    const seen = new Set();
     for (const ex of (s.exercises || [])) {
       const key = ex.exerciseName.trim().toLowerCase();
-      if (!map.has(key)) map.set(key, ex.exerciseName.trim());
+      if (!names.has(key)) names.set(key, ex.exerciseName.trim());
+      if (!seen.has(key)) { counts.set(key, (counts.get(key) || 0) + 1); seen.add(key); }
     }
   }
-  return [...map.entries()]
-    .map(([key, name]) => ({ key, name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  return [...names.entries()]
+    .map(([key, name]) => ({ key, name, count: counts.get(key) || 0 }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 // Match by normalized exercise name so all variants are merged
@@ -273,7 +276,7 @@ function renderSearchResults(q) {
   results.innerHTML = filtered.map(e => `
     <div class="prog-ex-row" data-key="${e.key}">
       <div class="prog-ex-item">
-        <span class="prog-ex-name">${e.name}</span>
+        <span class="prog-ex-name">${e.name}<span class="prog-ex-count"> · ${e.count} session${e.count !== 1 ? 's' : ''}</span></span>
         <svg class="prog-ex-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
           <path d="M6 9l6 6 6-6"/>
