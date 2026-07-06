@@ -98,6 +98,22 @@ function formatTime(secs) {
 }
 const pad = n => String(n).padStart(2, '0');
 
+function calcVol(sets) {
+  return (sets || []).reduce((sum, s) => sum + (s.weight || 0) * (s.reps || 0), 0);
+}
+
+function updateTodayVol(ei) {
+  const rows = document.querySelectorAll(`.sess-set-row[data-ei="${ei}"]`);
+  let vol = 0;
+  rows.forEach(row => {
+    const w = parseFloat(row.querySelector('[data-field="weight"]')?.value) || 0;
+    const r = parseFloat(row.querySelector('[data-field="reps"]')?.value) || 0;
+    vol += w * r;
+  });
+  const el = document.querySelector(`.sess-vol-today[data-ei="${ei}"]`);
+  if (el) el.textContent = `Today: ${Math.round(vol * 10) / 10} kg`;
+}
+
 function lastSessionForRoutine(routineId) {
   return sessions.find(s => s.routineId === routineId) || null;
 }
@@ -397,12 +413,19 @@ function stopTimer() { clearInterval(timerID); timerID = null; }
 function renderSets() {
   const container = document.getElementById('sess-exercises');
   container.innerHTML = active.exercises.map((ex, ei) => {
-    const prev = ex.previousSets || [];
+    const prev    = ex.previousSets || [];
+    const todayVol = Math.round(calcVol(ex.sets) * 10) / 10;
+    const lastVol  = ex.previousSets ? Math.round(calcVol(ex.previousSets) * 10) / 10 : null;
     return `
       <div class="sess-block" data-ei="${ei}">
         <div class="sess-ex-title">
           ${ex.exerciseName}
           <span class="sess-ex-equip">(${ex.equipment})</span>
+        </div>
+        <div class="sess-vol-row">
+          <span class="sess-vol-today" data-ei="${ei}">Today: ${todayVol} kg</span>
+          <span class="sess-vol-sep">·</span>
+          <span class="sess-vol-last">Last time: ${lastVol !== null ? lastVol + ' kg' : '—'}</span>
         </div>
         <div class="sess-table-wrap">
           <div class="sess-row sess-header">
@@ -449,6 +472,7 @@ function wireSessEvents(container) {
         parseFloat(inp.value) || 0;
       debouncedSave();
     });
+    inp.addEventListener('input', () => updateTodayVol(+inp.dataset.ei));
   });
 
   // Checkmark toggle
